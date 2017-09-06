@@ -146,10 +146,25 @@ class useradd::login_defs (
 
   if $ttyperm { validate_umask($ttyperm) }
 
-  file { '/etc/login.defs':
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0640',
-    content => template('useradd/etc/login_defs.erb')
+  if $facts['os']['name'] in ['RedHat','CentOS'] {
+    file { '/etc/login.defs':
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0640',
+      content => template('useradd/etc/login_defs.erb')
+    }
   }
+  elsif $facts['os']['name'] in ['Debian','Ubuntu'] {
+    # Debian/Ubuntu display warning messages when using obsolete (= moved to PAM) settings
+    file { '/etc/login.defs':
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0640',
+      content => template('useradd/debian/etc/login_defs.erb')
+    }
+  }
+  else {
+    fail("OS '${facts['os']['name']}' not supported by '${module_name}'")
+   }
+
 }
